@@ -49,7 +49,7 @@ class response {
 
     maximumCacheKeyExceeed(res){
         res.status(200).json({
-            status: "maxoldu",
+            status: "maximumCacheKeyExceeed",
             data:this.data
         })
     }
