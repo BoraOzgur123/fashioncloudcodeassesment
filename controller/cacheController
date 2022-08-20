@@ -1,0 +1,161 @@
+const Cache = require('../models/cache.model');
+const response = require('../response');
+const { validationResult } = require('express-validator');
+
+let maximumItem = 0;
+
+
+//GET  http://localhost/api/cache
+exports.list = (req, res) => {
+    Cache.find({}, (err, caches) => {
+        if (err) {
+            return new response(null, err).error500(res);
+        }
+        return new response(caches, null).success(res);
+    })
+}
+
+//POST  http://localhost/api/insert
+exports.create = (req, res) => {
+    let errors = validationResult(req);
+
+    if (!errors.isEmpty())
+        return new response(null, errors.array()).error400(res);
+
+
+    var cache = new Cache();
+    const { key, value } = req.body;
+
+    cache.key = key;
+    cache.value = value;
+
+    cache.save((err) => {
+        if (err)
+            return new response(null, err).error500(res);
+
+        return new response(cache, null).created(res);
+    })
+}
+
+//PUT  http://localhost/api/cache/cacheId
+exports.update = (req, res) => {
+    let errors = validationResult(req);
+
+    if (!errors.isEmpty())
+        return new response(null, errors.array()).error400(res);
+
+
+    Cache.findById(req.params.cache_id, (err, cache) => {
+        if (err)
+            return new response(null, err).error500(res);
+
+        if (!cache)
+            return new response().notFound(res);
+
+        const { key, value } = req.body;
+
+        cache.key = key;
+        cache.value = value;
+
+        cache.save((err) => {
+            if (err)
+                return new response(null, err).error500(res);
+
+            return new response(cache, null).success(res);
+        })
+    })
+}
+
+//DELETE  http://localhost/api/cache/cacheKey
+exports.delete = (req, res) => {
+    let errors = validationResult(req);
+
+    if (!errors.isEmpty())
+        return new response(null, errors.array()).error400(res);
+
+    Cache.findOneAndDelete({ key: req.params.cache_key }, (err, cache) => {
+        if (err)
+            return new response(null, err).error500(res);
+
+        if (!cache) {
+            return new response().notFound(res);
+        }
+        return new response(cache, null).success(res);
+    });
+}
+
+//DELETE  http://localhost/api/cache
+exports.deleteAll = (req, res) => {
+    Cache.remove({}, (err) => {
+        if (err)
+            return new response(null, err).error500(res);
+
+        return new response(null, null).success(res);
+    });
+}
+
+//GET http://localhost/api/caches/cacheKey
+exports.getByKey = (req, res) => {
+    let errors = validationResult(req);
+
+    if (!errors.isEmpty())
+        return new response(null, errors.array()).error400(res);
+
+
+    let cacheKey = req.params.cache_key
+
+    Cache.findOne({ key : cacheKey}, (err, cache) => {
+        if (err)
+            return new response(null, err).error500(res);
+
+        if (!cache){
+            console.log("Cache Miss");
+            var randomString = createRandomString(5);
+            return new response(randomString, err).notFound(res);
+        }
+
+        console.log("Cache hit");
+        return new response(cache,null).success(res);
+    })
+}
+
+
+function isCacheLimited() {
+    Cache.count({}, (err, count) => {
+        if (err)
+        return new response(maximumItem, null).maximumCacheKeyExceeed(null);    
+
+        return count >= maximumItem;
+    });
+
+    //To understand which one must be overwritten , we have to store cachekey service call frequency. 
+    //After we determine which cacheKey is low frequency , we should overwrite the cachekey.
+}
+
+function createRandomString(length) {
+    var result           = '';
+    var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var charactersLength = characters.length;
+    for ( var i = 0; i < length; i++ ) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+   }
+   return result;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
