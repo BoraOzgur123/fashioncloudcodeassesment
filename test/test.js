@@ -19,18 +19,3 @@ mongoose.connect(
 
 
 
-
-  describe("User Service Unit Tests", function () {
-    describe("Save User functionality", function () {
-      it("should successfully add a user if the number of users in the DB with the same profiled is zero", async function () {
-        const profileId = 1;
-        const name = "Akshay";
-        const dob = "2020-12-12";
-        const experience = [{ years: 2, organizationName: "ABCD" }];
-        const result = cacheController.list();
-        expect(result).to.not.equal(null);
- 
-      });
-      
-    });
-  });
